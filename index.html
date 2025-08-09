@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simple Marketing Message Maker</title>
+  <style>
+    :root { --bg:#f8fafc; --card:#ffffff; --muted:#64748b; --text:#0f172a; --accent:#0ea5e9; }
+    * { box-sizing: border-box }
+    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; color:var(--text); background:linear-gradient(#fff, var(--bg)); }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0 0 4px 0; font-size: 24px; font-weight: 800; }
+    .muted { color: var(--muted); font-size: 14px; }
+    .toolbar { display:flex; gap:10px; align-items:center; }
+    button { cursor: pointer; border:1px solid #e2e8f0; background:#fff; padding:8px 12px; border-radius:10px; font-weight:600; }
+    button.primary { background:var(--accent); color:#fff; border-color:transparent; }
+    button.danger { background:#ef4444; color:#fff; border-color:transparent; }
+    .grid { display:grid; gap:20px; }
+    @media (min-width: 1000px){ .grid.two { grid-template-columns: 1fr 1fr; } }
+    .card { background: var(--card); border:1px solid #e2e8f0; border-radius:14px; box-shadow: 0 1px 0 rgba(0,0,0,.02); }
+    .card .hd { padding:16px 18px 8px 18px; border-bottom:1px solid #eef2f7; display:flex; justify-content:space-between; align-items:center; }
+    .card .title { font-size:16px; font-weight:800; }
+    .card .desc { font-size:12px; color:var(--muted); margin-top:2px; }
+    .card .bd { padding:18px; }
+    label { display:block; font-size:13px; color:#0f172a; margin-bottom:6px; }
+    input, textarea, select { width:100%; padding:10px 12px; border:1px solid #e2e8f0; border-radius:10px; font-size:14px; outline:none; background:#fff; }
+    textarea { resize: vertical; }
+    ul { margin:0; padding-left:20px; }
+    .list-item { display:flex; gap:8px; align-items:flex-start; margin-bottom:10px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .row { margin-bottom:14px; }
+    .pill { font-size:12px; color:#155e75; background:#e0f2fe; border:1px solid #bae6fd; padding: 4px 8px; border-radius:999px; margin-left:8px; }
+    .toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:#0f172a; color:#fff; padding:10px 14px; border-radius:10px; font-size:13px; opacity:0; transition:opacity .2s; }
+    .toast.show { opacity:1; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <div id="toast" class="toast">Copied</div>
+
+  <!-- React from CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <script>
+    const { useState, useEffect, useMemo } = React;
+
+    const defaults = {
+      brand: "columbianxchange.com",
+      audience: "spiritual entrepreneurs and creators",
+      problem: "inconsistent sales and fuzzy messaging",
+      outcome: "consistent inquiries and a clear offer",
+      category: "practical marketing coaching",
+      differentiator: "daily 20-minute habit + receipts-first approach",
+      proof: "client screenshots showing 2–5 bookings/week in 30 days",
+      offer: "Marketing Pow Wow – Starter Sprint",
+      price: "$97 intro or $0 community tier",
+      place: "live Zoom + templates via Notion",
+      cta: "DM 'START' or book a 10-min intro call",
+    };
+
+    const cap = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+
+    function buildPositioning(s){
+      return `For ${s.audience} who struggle with ${s.problem}, ${s.brand} offers ${s.category} called “${s.offer}” that delivers ${s.outcome}. We’re different because of ${s.differentiator}, and you can trust it because of ${s.proof}. Start here: ${s.cta}.`;
+    }
+    function buildTagline(s){ return `${cap(s.outcome)} in minutes a day — not more noise.`; }
+    function build4Ps(s){
+      return [
+        `Product: ${s.offer} — ${s.category}. Differentiator: ${s.differentiator}.`,
+        `Price: ${s.price}.`,
+        `Place: Delivered via ${s.place}.`,
+        `Promotion: Lead with proof (${s.proof}). CTA: ${s.cta}.`,
+      ];
+    }
+    function buildHeadlines(s){
+      return [
+        `How ${cap(s.audience)} get ${s.outcome} (without ${s.problem})`,
+        `${cap(s.outcome)} in 30 days with a ${s.category} you’ll actually use`,
+        `Stop ${s.problem}. Start ${s.outcome}.`,
+      ];
+    }
+    function buildDM(s){ return `Saw your post about ${s.problem}. I help ${s.audience} get ${s.outcome}. Want a 2-step outline?`; }
+    function buildAIDA(s){
+      const hl = buildHeadlines(s)[0];
+      return [
+        `Attention: ${hl}`,
+        `Interest: Most ${s.audience} struggle with ${s.problem}, leading to missed opportunities and stress.`,
+        `Desire: Imagine ${s.outcome}. With ${s.offer}, you’ll get ${s.differentiator}. Proof: ${s.proof}.`,
+        `Action: ${s.cta}.`,
+      ];
+    }
+
+    const showToast = (msg="Copied")=>{
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(()=>el.classList.remove("show"), 1200);
+    };
+
+    function Field({ label, value, onChange }){
+      return (
+        React.createElement("div", { className:"row" }, [
+          React.createElement("label", { key:"l" }, label),
+          React.createElement("input", { key:"i", value, onChange:e=>onChange(e.target.value) })
+        ])
+      );
+    }
+
+    function Block({ title, text }){
+      return (
+        React.createElement("div", { className:"card" }, [
+          React.createElement("div", { className:"hd" }, [
+            React.createElement("div", { key:"t", className:"title" }, title),
+            React.createElement("div", null, 
+              React.createElement("button", { className:"", onClick:()=>{ navigator.clipboard.writeText(text); showToast(); } }, "Copy")
+            )
+          ]),
+          React.createElement("div", { className:"bd" }, 
+            React.createElement("textarea", { className:"mono", readOnly:true, rows: title==="Positioning Line"?5:3, value:text })
+          )
+        ])
+      );
+    }
+
+    function List({ title, items }){
+      return (
+        React.createElement("div", { className:"card" }, [
+          React.createElement("div", { className:"hd" }, [
+            React.createElement("div", { key:"t", className:"title" }, title),
+            React.createElement("span", { className:"pill" }, items.length + " items")
+          ]),
+          React.createElement("div", { className:"bd" }, 
+            React.createElement("ul", null, 
+              items.map((t,i)=>(
+                React.createElement("li", { key:i, className:"list-item" }, [
+                  React.createElement("span", { className:"flex-1" }, t),
+                  React.createElement("button", { onClick:()=>{ navigator.clipboard.writeText(t); showToast(); } }, "Copy")
+                ])
+              ))
+            )
+          )
+        ])
+      );
+    }
+
+    function App(){
+      const [s, setS] = React.useState(()=>{
+        // load from URL share or localStorage
+        try{
+          if (location.hash.startsWith("#simple=")) {
+            const json = atob(decodeURIComponent(location.hash.replace("#simple=","")));
+            const obj = JSON.parse(json);
+            localStorage.setItem("mpow-simple", JSON.stringify(obj));
+            return obj;
+          }
+        }catch {}
+        const saved = localStorage.getItem("mpow-simple");
+        if (saved) { try { return JSON.parse(saved); } catch{} }
+        return defaults;
+      });
+
+      useEffect(()=>{ localStorage.setItem("mpow-simple", JSON.stringify(s)); }, [s]);
+
+      const positioning = useMemo(()=>buildPositioning(s), [s]);
+      const ps         = useMemo(()=>build4Ps(s), [s]);
+      const headlines  = useMemo(()=>buildHeadlines(s), [s]);
+      const tagline    = useMemo(()=>buildTagline(s), [s]);
+      const dm         = useMemo(()=>buildDM(s), [s]);
+      const aida       = useMemo(()=>buildAIDA(s), [s]);
+
+      const update = (k, v)=> setS(prev=>({ ...prev, [k]: v }));
+      const reset  = ()=> { setS(defaults); showToast("Reset to defaults"); };
+      const share  = ()=> {
+        const link = location.origin + location.pathname + "#simple=" + encodeURIComponent(btoa(JSON.stringify(s)));
+        navigator.clipboard.writeText(link);
+        showToast("Shareable link copied");
+      };
+
+      return (
+        React.createElement("div", { className:"container" }, [
+          React.createElement("div", { className:"grid", style:{gap:12, alignItems:"center", justifyContent:"space-between", gridTemplateColumns:"1fr auto"} }, [
+            React.createElement("div", { key:"h" }, [
+              React.createElement("h1", null, "Simple Marketing Message Maker"),
+              React.createElement("div", { className:"muted" }, "Powered by STP → Positioning → 4Ps + AIDA")
+            ]),
+            React.createElement("div", { className:"toolbar" }, [
+              React.createElement("button", { onClick:share }, "Share"),
+              React.createElement("button", { className:"danger", onClick:reset }, "Reset")
+            ])
+          ]),
+
+          React.createElement("div", { className:"grid two", style:{marginTop:16} }, [
+            React.createElement("div", { className:"card" }, [
+              React.createElement("div", { className:"hd" }, [
+                React.createElement("div", { className:"title" }, "Answer these 10 lines"),
+                React.createElement("div", { className:"desc" }, "Each maps to Positioning, 4Ps, and AIDA outputs.")
+              ]),
+              React.createElement("div", { className:"bd" }, 
+                Object.keys(defaults).map((k)=>(
+                  React.createElement(Field, {
+                    key:k, label: cap(k),
+                    value: s[k],
+                    onChange: (v)=>update(k, v)
+                  })
+                ))
+              )
+            ]),
+
+            React.createElement("div", { className:"card" }, [
+              React.createElement("div", { className:"hd" }, [
+                React.createElement("div", { className:"title" }, "Your Message"),
+                React.createElement("div", { className:"desc" }, "Copy any block to use instantly.")
+              ]),
+              React.createElement("div", { className:"bd grid", style:{gap:16} }, [
+                React.createElement(Block, { title:"Positioning Line", text:positioning }),
+                React.createElement(Block, { title:"Tagline", text:tagline }),
+                React.createElement(List, { title:"Headlines", items:headlines }),
+                React.createElement(Block, { title:"DM Opener", text:dm }),
+                React.createElement(List, { title:"4Ps Draft", items:ps }),
+                React.createElement(List, { title:"AIDA Script", items:aida }),
+              ])
+            ])
+          ]),
+
+          React.createElement("div", { className:"grid", style:{marginTop:16} }, [
+            React.createElement("div", { className:"card" }, [
+              React.createElement("div", { className:"hd" }, [
+                React.createElement("div", { className:"title" }, "What is AIDA?"),
+                React.createElement("div", { className:"desc" }, "A simple model for guiding a customer from awareness to action.")
+              ]),
+              React.createElement("div", { className:"bd" }, [
+                React.createElement("p", null, React.createElement("b", null, "Attention:"), " Grab the audience’s awareness with a hook or striking statement."),
+                React.createElement("p", null, React.createElement("b", null, "Interest:"), " Show you understand their needs and pain points."),
+                React.createElement("p", null, React.createElement("b", null, "Desire:"), " Build a want with benefits, transformations, and proof."),
+                React.createElement("p", null, React.createElement("b", null, "Action:"), " Give a clear, easy next step (CTA)."),
+              ])
+            ]),
+
+            React.createElement("div", { className:"card" }, [
+              React.createElement("div", { className:"hd" }, [
+                React.createElement("div", { className:"title" }, "What are the 4Ps?"),
+                React.createElement("div", { className:"desc" }, "The marketing mix elements you can control.")
+              ]),
+              React.createElement("div", { className:"bd" }, [
+                React.createElement("p", null, React.createElement("b", null, "Product:"), " What you offer to meet the need."),
+                React.createElement("p", null, React.createElement("b", null, "Price:"), " What the customer pays, and the perceived value."),
+                React.createElement("p", null, React.createElement("b", null, "Place:"), " Where and how the product is made available."),
+                React.createElement("p", null, React.createElement("b", null, "Promotion:"), " How you communicate and persuade (ads, PR, content, direct outreach)."),
+              ])
+            ]),
+          ])
+        ])
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
+</body>
+</html>
