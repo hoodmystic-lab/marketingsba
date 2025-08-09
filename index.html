@@ -255,6 +255,43 @@
     }
 
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  function buildAttentionIdeas(s: FormState): string[] {
+  const cap = (x:string)=> x ? x[0].toUpperCase()+x.slice(1) : x;
+
+  return [
+    // Question hooks
+    `Question ▸ What if ${s.audience} could ${s.outcome} without ${s.problem}?`,
+    `Question ▸ Are you still battling ${s.problem} instead of enjoying ${s.outcome}?`,
+
+    // Pattern interrupt / bold statement
+    `Pattern Interrupt ▸ Stop doing “more content.” Do ${s.category} that compounds.`,
+
+    // Surprising stat (generic shell—replace with your real stat when known)
+    `Stat ▸ Most ${s.audience} waste 80% of effort on ${s.problem}. Flip it in 20 minutes/day.`,
+
+    // Pain-first
+    `Pain ▸ Tired of ${s.problem}? Here’s how ${cap(s.offer)} gets you ${s.outcome}.`,
+
+    // Social proof / mini-story
+    `Story ▸ "${s.proof}". You’re one habit away from ${s.outcome}.`,
+
+    // Promise / benefit-first
+    `Promise ▸ ${cap(s.outcome)} in weeks, not months—with ${s.differentiator}.`,
+
+    // Myth-bust
+    `Myth ▸ You don’t need fancy funnels. You need ${s.category} + ${s.differentiator}.`,
+
+    // Contrast
+    `Contrast ▸ From ${s.problem} → ${s.outcome}. Same you, better system.`,
+
+    // Curiosity gap
+    `Curiosity ▸ The 2 steps ${s.audience} skip that block ${s.outcome}.`,
+
+    // Micro‑challenge / call‑in
+    `Challenge ▸ Give me 7 days. If ${s.outcome} doesn’t feel closer, fire me.`,
+  ];
+}
+
   </script>
 </body>
 </html>
